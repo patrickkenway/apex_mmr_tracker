@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from backend.app.database import Base
 from backend.app.models.player import Player
+from backend.app.models.session import Session
 
 load_dotenv()
 
