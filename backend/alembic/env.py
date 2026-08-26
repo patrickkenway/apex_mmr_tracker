@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from backend.app.database import Base
 from backend.app.models.player import Player
 from backend.app.models.session import Session
+from backend.app.models.match import Match
 
 load_dotenv()
 
