@@ -10,6 +10,7 @@ from backend.app.database import Base
 from backend.app.models.player import Player
 from backend.app.models.session import Session
 from backend.app.models.match import Match
+from backend.app.models.mmr_record import MmrRecord
 
 load_dotenv()
 
