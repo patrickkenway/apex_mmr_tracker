@@ -49,6 +49,9 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL nincs beállítva")
+
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
     connectable = engine_from_config(
