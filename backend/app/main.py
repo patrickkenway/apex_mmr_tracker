@@ -1,8 +1,10 @@
 from fastapi import FastAPI
-
+from .api.players import router as players_router
 from .database import engine
 
 app = FastAPI()
+
+app.include_router(players_router)
 
 
 @app.get("/")
