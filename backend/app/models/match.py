@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer
+from sqlalchemy import DateTime, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -8,6 +8,14 @@ from ..database import Base
 
 class Match(Base):
     __tablename__ = "matches"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "match_number",
+            name="uq_match_session_number",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
