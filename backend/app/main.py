@@ -3,12 +3,14 @@ from .api.players import router as players_router
 from .database import engine
 from .api.sessions import router as sessions_router
 from .api.matches import router as matches_router
+from .api.mmr_record import router as mmr_record_router
 
 app = FastAPI()
 
 app.include_router(players_router)
 app.include_router(sessions_router)
 app.include_router(matches_router)
+app.include_router(mmr_record_router)
 
 
 @app.get("/")
