@@ -15,3 +15,11 @@ class MatchResponse(BaseModel):
     played_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class MatchDetailsResponse(BaseModel):
+    id: int
+    session_id: int
+    match_number: int
+    played_at: datetime
+    players: list[dict]

@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.match import Match
 from ..models.session import Session as SessionModel
-from ..schemas.match import MatchCreate, MatchResponse
+from ..models.mmr_record import MmrRecord
+from ..schemas.match import (
+    MatchCreate,
+    MatchResponse,
+    MatchDetailsResponse,
+)
 
 router = APIRouter(
     # prefix="/sessions/{session_id}/matches",
@@ -105,18 +110,53 @@ def get_matches(
 #    return match
 
 
-@router.get("/{match_id}", response_model=MatchResponse)
-def get_match_by_id(
+# @router.get("/{match_id}", response_model=MatchResponse)
+# def get_match_by_id(
+#    match_id: int,
+#    db: Session = Depends(get_db),
+# ):
+#    # Meccs lekérése ID alapján
+#    match = db.query(Match).filter(Match.id == match_id).first()
+#
+#    if not match:
+#        raise HTTPException(
+#            status_code=404,
+#            detail=f"Match with id {match_id} not found",
+#        )
+#
+#    return match
+
+
+@router.get("/{match_id}", response_model=MatchDetailsResponse)
+def get_match_details(
     match_id: int,
     db: Session = Depends(get_db),
 ):
-    # Meccs lekérése ID alapján
     match = db.query(Match).filter(Match.id == match_id).first()
 
-    if not match:
+    if match is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Match with id {match_id} not found",
+            detail="Match not found",
         )
 
-    return match
+    records = db.query(MmrRecord).filter(MmrRecord.match_id == match_id).all()
+
+    players = [
+        {
+            "player_id": record.player_id,
+            "player_name": record.player.name,
+            "pre_mmr": record.pre_mmr,
+            "post_mmr": record.post_mmr,
+            "mmr_change": record.post_mmr - record.pre_mmr,
+        }
+        for record in records
+    ]
+
+    return {
+        "id": match.id,
+        "session_id": match.session_id,
+        "match_number": match.match_number,
+        "played_at": match.played_at,
+        "players": players,
+    }

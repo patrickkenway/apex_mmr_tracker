@@ -79,5 +79,17 @@ def get_mmr_records(
             status_code=404,
             detail="Match not found",
         )
+    records = db.query(MmrRecord).filter(MmrRecord.match_id == match_id).all()
 
-    return db.query(MmrRecord).filter(MmrRecord.match_id == match_id).all()
+    return [
+        {
+            "id": record.id,
+            "match_id": record.match_id,
+            "player_id": record.player_id,
+            "player_name": record.player.name,
+            "pre_mmr": record.pre_mmr,
+            "post_mmr": record.post_mmr,
+            "mmr_change": record.post_mmr - record.pre_mmr,
+        }
+        for record in records
+    ]
