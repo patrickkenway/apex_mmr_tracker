@@ -34,3 +34,16 @@ def get_player_mmr(
     data = response.json()
 
     return int(data["global"]["rank"]["rankScore"])
+
+
+def get_players_mmr() -> dict[str, int]:
+    return {
+        "patrik": get_player_mmr(
+            apex_username="patrickkenway",
+            platform="PS4",
+        ),
+        "noel": get_player_mmr(
+            apex_username="TragicSleet364",
+            platform="PC",
+        ),
+    }

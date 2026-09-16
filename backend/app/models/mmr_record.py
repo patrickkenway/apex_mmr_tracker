@@ -32,9 +32,9 @@ class MmrRecord(Base):
         nullable=False,
     )
 
-    post_mmr: Mapped[int] = mapped_column(
+    post_mmr: Mapped[int | None] = mapped_column(
         Integer,
-        nullable=False,
+        nullable=True,
     )
 
     match = relationship("Match")

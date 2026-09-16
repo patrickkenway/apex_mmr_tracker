@@ -1,15 +1,7 @@
-from backend.app.services.apex import get_player_mmr
+from backend.app.services.apex import get_players_mmr
 
 
-patrik_mmr = get_player_mmr(
-    apex_username="patrickkenway",
-    platform="PS4",
-)
+mmr = get_players_mmr()
 
-noel_mmr = get_player_mmr(
-    apex_username="TragicSleet364",
-    platform="PC",
-)
-
-print("Patrik MMR:", patrik_mmr)
-print("Noel MMR:", noel_mmr)
+print("Patrik MMR:", mmr["patrik"])
+print("Noel MMR:", mmr["noel"])

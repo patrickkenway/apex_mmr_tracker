@@ -5,6 +5,9 @@ from ..database import get_db
 from ..models.match import Match
 from ..models.session import Session as SessionModel
 from ..models.mmr_record import MmrRecord
+from ..models.player import Player
+from ..services.apex import get_players_mmr
+
 from ..schemas.match import (
     MatchCreate,
     MatchResponse,
@@ -50,6 +53,9 @@ def create_match(
     else:
         next_match_number = last_match.match_number + 1
 
+    # Aktuális MMR-ek lekérése az Apex API-ból
+    current_mmr = get_players_mmr()
+
     match = Match(
         session_id=session_id,
         match_number=next_match_number,
@@ -57,6 +63,34 @@ def create_match(
     )
 
     db.add(match)
+    db.flush()
+
+    patrik = db.query(Player).filter(Player.apex_username == "patrickkenway").first()
+
+    noel = db.query(Player).filter(Player.apex_username == "TragicSleet364").first()
+
+    if patrik is None or noel is None:
+        db.rollback()
+        raise HTTPException(
+            status_code=404,
+            detail="Required players not found",
+        )
+
+    patrik_record = MmrRecord(
+        match_id=match.id,
+        player_id=patrik.id,
+        pre_mmr=current_mmr["patrik"],
+    )
+
+    noel_record = MmrRecord(
+        match_id=match.id,
+        player_id=noel.id,
+        pre_mmr=current_mmr["noel"],
+    )
+
+    db.add(patrik_record)
+    db.add(noel_record)
+
     db.commit()
     db.refresh(match)
 
@@ -148,7 +182,11 @@ def get_match_details(
             "player_name": record.player.name,
             "pre_mmr": record.pre_mmr,
             "post_mmr": record.post_mmr,
-            "mmr_change": record.post_mmr - record.pre_mmr,
+            "mmr_change": (
+                record.post_mmr - record.pre_mmr
+                if record.post_mmr is not None
+                else None
+            ),
         }
         for record in records
     ]
