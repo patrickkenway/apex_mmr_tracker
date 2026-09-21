@@ -6,7 +6,7 @@ from ..models.match import Match
 from ..models.session import Session as SessionModel
 from ..models.mmr_record import MmrRecord
 from ..models.player import Player
-from ..services.apex import get_players_mmr
+from ..services.apex import get_player_mmr
 
 from ..schemas.match import (
     MatchCreate,
@@ -41,6 +41,45 @@ def create_match(
             detail="Cannot add a match to a finished session",
         )
 
+    # A kezdő játékos lekérése
+    starting_player = db.query(Player).filter(Player.id == match_data.player_id).first()
+
+    if starting_player is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Starting player not found",
+        )
+
+    # Összegyűjtjük a meccs játékosait
+    player_ids = [
+        match_data.player_id,
+        *match_data.other_player_ids,
+    ]
+
+    # Duplikált játékosok ellenőrzése
+    if len(player_ids) != len(set(player_ids)):
+        raise HTTPException(
+            status_code=400,
+            detail="A player cannot be added to a match more than once",
+        )
+
+    # Jelenleg maximum 3 játékos lehet egy meccsen
+    if len(player_ids) > 3:
+        raise HTTPException(
+            status_code=400,
+            detail="A match can have at most 3 players",
+        )
+
+    # Játékosok lekérése
+    players = db.query(Player).filter(Player.id.in_(player_ids)).all()
+
+    if len(players) != len(player_ids):
+        raise HTTPException(
+            status_code=404,
+            detail="One or more players not found",
+        )
+
+    # Következő meccsszám
     last_match = (
         db.query(Match)
         .filter(Match.session_id == session_id)
@@ -53,9 +92,7 @@ def create_match(
     else:
         next_match_number = last_match.match_number + 1
 
-    # Aktuális MMR-ek lekérése az Apex API-ból
-    current_mmr = get_players_mmr()
-
+    # Meccs létrehozása
     match = Match(
         session_id=session_id,
         match_number=next_match_number,
@@ -65,31 +102,21 @@ def create_match(
     db.add(match)
     db.flush()
 
-    patrik = db.query(Player).filter(Player.apex_username == "patrickkenway").first()
-
-    noel = db.query(Player).filter(Player.apex_username == "TragicSleet364").first()
-
-    if patrik is None or noel is None:
-        db.rollback()
-        raise HTTPException(
-            status_code=404,
-            detail="Required players not found",
+    # MMR rekordok létrehozása
+    for player in players:
+        pre_mmr = get_player_mmr(
+            apex_username=player.apex_username,
+            platform=player.platform,
         )
 
-    patrik_record = MmrRecord(
-        match_id=match.id,
-        player_id=patrik.id,
-        pre_mmr=current_mmr["patrik"],
-    )
+        record = MmrRecord(
+            match_id=match.id,
+            player_id=player.id,
+            pre_mmr=pre_mmr,
+            post_mmr=None,
+        )
 
-    noel_record = MmrRecord(
-        match_id=match.id,
-        player_id=noel.id,
-        pre_mmr=current_mmr["noel"],
-    )
-
-    db.add(patrik_record)
-    db.add(noel_record)
+        db.add(record)
 
     db.commit()
     db.refresh(match)
@@ -116,49 +143,6 @@ def get_matches(
         .order_by(Match.match_number)
         .all()
     )
-
-
-# eredeti de vmiert session_idval egyutt kereso szar
-#
-# @router.get("/{match_id}", response_model=MatchResponse)
-# def get_match(
-#    session_id: int,
-#    match_id: int,
-#    db: Session = Depends(get_db),
-# ):
-#    match = (
-#        db.query(Match)
-#        .filter(
-#            Match.id == match_id,
-#            Match.session_id == session_id,
-#        )
-#        .first()
-#    )
-#
-#    if match is None:
-#        raise HTTPException(
-#            status_code=404,
-#            detail="Match not found",
-#        )
-#
-#    return match
-
-
-# @router.get("/{match_id}", response_model=MatchResponse)
-# def get_match_by_id(
-#    match_id: int,
-#    db: Session = Depends(get_db),
-# ):
-#    # Meccs lekérése ID alapján
-#    match = db.query(Match).filter(Match.id == match_id).first()
-#
-#    if not match:
-#        raise HTTPException(
-#            status_code=404,
-#            detail=f"Match with id {match_id} not found",
-#        )
-#
-#    return match
 
 
 @router.get("/{match_id}", response_model=MatchDetailsResponse)
@@ -197,4 +181,49 @@ def get_match_details(
         "match_number": match.match_number,
         "played_at": match.played_at,
         "players": players,
+    }
+
+
+@router.post("/{match_id}/finish")
+def finish_match(
+    match_id: int,
+    db: Session = Depends(get_db),
+):
+    match = db.query(Match).filter(Match.id == match_id).first()
+
+    if match is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Match not found",
+        )
+
+    records = db.query(MmrRecord).filter(MmrRecord.match_id == match_id).all()
+
+    if not records:
+        raise HTTPException(
+            status_code=400,
+            detail="Match has no players",
+        )
+
+    # Ellenőrizzük, hogy a meccs még nincs-e lezárva
+    if any(record.post_mmr is not None for record in records):
+        raise HTTPException(
+            status_code=400,
+            detail="Match is already finished",
+        )
+
+    # Minden játékos aktuális MMR-jének lekérése
+    for record in records:
+        post_mmr = get_player_mmr(
+            apex_username=record.player.apex_username,
+            platform=record.player.platform,
+        )
+
+        record.post_mmr = post_mmr
+
+    db.commit()
+
+    return {
+        "message": "Match finished successfully",
+        "match_id": match.id,
     }

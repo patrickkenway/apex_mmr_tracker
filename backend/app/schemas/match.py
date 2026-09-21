@@ -1,11 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MatchCreate(BaseModel):
     #    match_number: int
     played_at: datetime
+    player_id: int
+    other_player_ids: list[int] = Field(default_factory=list)
 
 
 class MatchResponse(BaseModel):
