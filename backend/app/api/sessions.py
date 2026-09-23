@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 
+from ..models.match import Match
+from ..models.mmr_record import MmrRecord
+from ..services.apex import get_player_mmr
 from ..database import get_db
 from ..models.session import Session as SessionModel
 from ..schemas.sessions import SessionCreate, SessionResponse
@@ -66,11 +69,35 @@ def finish_session(
             status_code=404,
             detail="Session not found",
         )
+
     if session.ended_at is not None:
         raise HTTPException(
             status_code=400,
             detail="Session is already finished",
         )
+
+    matches = db.query(Match).filter(Match.session_id == session_id).all()
+
+    for match in matches:
+        records = db.query(MmrRecord).filter(MmrRecord.match_id == match.id).all()
+
+        if not records:
+            continue
+
+        match_finished = all(record.post_mmr is not None for record in records)
+
+        if match_finished:
+            continue
+
+        for record in records:
+            if record.post_mmr is None:
+                post_mmr = get_player_mmr(
+                    apex_username=record.player.apex_username,
+                    platform=record.player.platform,
+                )
+
+                record.post_mmr = post_mmr
+
     session.ended_at = datetime.now()
 
     db.commit()

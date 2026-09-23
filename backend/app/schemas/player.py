@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 class PlayerCreate(BaseModel):
     name: str
+    username: str
+    password: str
     apex_username: str
     platform: str
 
@@ -10,6 +12,7 @@ class PlayerCreate(BaseModel):
 class PlayerResponse(BaseModel):
     id: int
     name: str
+    username: str
     apex_username: str
     platform: str
 
