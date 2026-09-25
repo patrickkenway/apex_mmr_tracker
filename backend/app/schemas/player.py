@@ -22,3 +22,8 @@ class PlayerResponse(BaseModel):
 class PlayerLogin(BaseModel):
     username: str
     password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

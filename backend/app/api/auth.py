@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.player import Player
-from ..schemas.player import PlayerLogin, PlayerResponse
-from ..core.security import verify_password
-
+from ..schemas.player import PlayerLogin, TokenResponse
+from ..core.security import verify_password, create_access_token
 
 router = APIRouter(
     prefix="/auth",
@@ -13,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post("/login", response_model=PlayerResponse)
+@router.post("/login", response_model=TokenResponse)
 def login(
     credentials: PlayerLogin,
     db: Session = Depends(get_db),
@@ -32,4 +31,6 @@ def login(
             detail="Invalid username or password",
         )
 
-    return player
+    access_token = create_access_token(player.id)
+
+    return TokenResponse(access_token=access_token)
