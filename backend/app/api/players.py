@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 
+from ..core.security import hash_password
 from ..database import get_db
 from ..models.player import Player
 from ..schemas.player import PlayerCreate, PlayerResponse
@@ -18,8 +19,18 @@ def create_player(
     player_data: PlayerCreate,
     db: Session = Depends(get_db),
 ):
+    existing = db.query(Player).filter(Player.username == player_data.username).first()
+
+    if existing is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Username already taken",
+        )
+
     player = Player(
         name=player_data.name,
+        username=player_data.username,
+        password_hash=hash_password(player_data.password),
         apex_username=player_data.apex_username,
         platform=player_data.platform,
     )

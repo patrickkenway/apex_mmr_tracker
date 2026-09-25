@@ -17,3 +17,8 @@ class PlayerResponse(BaseModel):
     platform: str
 
     model_config = {"from_attributes": True}
+
+
+class PlayerLogin(BaseModel):
+    username: str
+    password: str

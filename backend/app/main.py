@@ -4,9 +4,11 @@ from .database import engine
 from .api.sessions import router as sessions_router
 from .api.matches import router as matches_router
 from .api.mmr_record import router as mmr_record_router
+from .api.auth import router as auth_router
 
 app = FastAPI()
 
+app.include_router(auth_router)
 app.include_router(players_router)
 app.include_router(sessions_router)
 app.include_router(matches_router)
