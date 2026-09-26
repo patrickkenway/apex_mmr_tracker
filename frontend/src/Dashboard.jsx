@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
 import { getPlayers } from "./api/players";
-import { createMatch, finishMatch, getMatchDetails } from "./api/matches";
-import { finishSession } from "./api/sessions";
+import { getSessions, finishSession } from "./api/sessions";
+import {
+  createMatch,
+  finishMatch,
+  getMatchDetails,
+  getMatchesForSession,
+} from "./api/matches";
 
 export default function Dashboard({ currentPlayer, onLogout }) {
   const [players, setPlayers] = useState([]);
@@ -14,7 +19,39 @@ export default function Dashboard({ currentPlayer, onLogout }) {
 
   useEffect(() => {
     loadPlayers();
+    restoreActiveState();
   }, []);
+
+  async function restoreActiveState() {
+    try {
+      const sessions = await getSessions();
+      const mySession = sessions.find(
+        (s) => s.player_id === currentPlayer.id && s.ended_at === null,
+      );
+
+      if (!mySession) {
+        return;
+      }
+
+      setActiveSessionId(mySession.id);
+
+      const sessionMatches = await getMatchesForSession(mySession.id);
+
+      if (sessionMatches.length === 0) {
+        return;
+      }
+
+      const lastMatch = sessionMatches[sessionMatches.length - 1];
+      const details = await getMatchDetails(lastMatch.id);
+      const isStillOpen = details.players.some((p) => p.post_mmr === null);
+
+      if (isStillOpen) {
+        setActiveMatch(lastMatch);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   async function loadPlayers() {
     try {

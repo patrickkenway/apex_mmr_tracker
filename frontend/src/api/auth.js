@@ -17,3 +17,9 @@ export function register(playerData) {
 export function getCurrentPlayer() {
   return apiFetch("/auth/me");
 }
+
+export function logoutRequest() {
+  return apiFetch("/auth/logout", {
+    method: "POST",
+  });
+}

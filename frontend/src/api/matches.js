@@ -19,3 +19,7 @@ export function finishMatch(matchId) {
 export function getMatchDetails(matchId) {
   return apiFetch(`/matches/${matchId}`);
 }
+
+export function getMatchesForSession(sessionId) {
+  return apiFetch(`/matches/session/${sessionId}`);
+}

@@ -4,6 +4,7 @@ import Register from "./Register";
 import { getCurrentPlayer } from "./api/auth";
 import "./App.css";
 import Dashboard from "./Dashboard";
+import { logoutRequest } from "./api/auth";
 
 function App() {
   const [view, setView] = useState("login");
@@ -39,10 +40,16 @@ function App() {
     setView("dashboard");
   }
 
-  function handleLogout() {
-    localStorage.removeItem("access_token");
-    setCurrentPlayer(null);
-    setView("login");
+  async function handleLogout() {
+    try {
+      await logoutRequest();
+    } catch (err) {
+      console.error("Logout request failed:", err);
+    } finally {
+      localStorage.removeItem("access_token");
+      setCurrentPlayer(null);
+      setView("login");
+    }
   }
 
   if (checkingAuth) {
