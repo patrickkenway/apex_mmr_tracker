@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getPlayers } from "./api/players";
-import { getSessions, finishSession } from "./api/sessions";
+import { getSessions, finishSession, getSessionStats } from "./api/sessions";
 import {
   createMatch,
   finishMatch,
@@ -16,11 +16,36 @@ export default function Dashboard({ currentPlayer, onLogout }) {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pastSessions, setPastSessions] = useState([]);
+  const [sessionStats, setSessionStats] = useState({});
 
   useEffect(() => {
     loadPlayers();
     restoreActiveState();
+    loadPastSessions();
   }, []);
+
+  async function loadPastSessions() {
+    try {
+      const sessions = await getSessions();
+      const myFinishedSessions = sessions
+        .filter((s) => s.player_id === currentPlayer.id && s.ended_at !== null)
+        .sort((a, b) => new Date(b.started_at) - new Date(a.started_at));
+
+      setPastSessions(myFinishedSessions);
+
+      const statsEntries = await Promise.all(
+        myFinishedSessions.map(async (s) => {
+          const stats = await getSessionStats(s.id);
+          return [s.id, stats];
+        }),
+      );
+
+      setSessionStats(Object.fromEntries(statsEntries));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   async function restoreActiveState() {
     try {
@@ -117,13 +142,13 @@ export default function Dashboard({ currentPlayer, onLogout }) {
       setActiveMatch(null);
       setActiveSessionId(null);
       setLastMatchDetails(null);
+      await loadPastSessions();
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
-
   return (
     <div>
       <h1>Bejelentkezve mint {currentPlayer.name}</h1>
@@ -191,6 +216,27 @@ export default function Dashboard({ currentPlayer, onLogout }) {
           </button>
         </div>
       )}
+      <hr />
+      <div>
+        <h2>Korábbi sessionök</h2>
+        {pastSessions.length === 0 && <p>Még nincs lezárt session.</p>}
+        {pastSessions.map((session) => (
+          <div key={session.id} style={{ marginBottom: "1em" }}>
+            <p>
+              <strong>Session #{session.id}</strong> —{" "}
+              {new Date(session.started_at).toLocaleString("hu-HU")}
+            </p>
+            <ul>
+              {(sessionStats[session.id]?.mmr_changes ?? []).map((change) => (
+                <li key={change.player_id}>
+                  {change.player_name}: {change.total_mmr_change > 0 ? "+" : ""}
+                  {change.total_mmr_change}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

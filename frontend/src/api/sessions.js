@@ -9,3 +9,7 @@ export function finishSession(sessionId) {
     method: "POST",
   });
 }
+
+export function getSessionStats(sessionId) {
+  return apiFetch(`/sessions/${sessionId}/stats`);
+}
