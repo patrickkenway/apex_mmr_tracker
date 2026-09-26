@@ -38,6 +38,7 @@ def create_session(
 @router.get("/", response_model=list[SessionResponse])
 def get_sessions(
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     return db.query(SessionModel).all()
 
@@ -46,6 +47,7 @@ def get_sessions(
 def get_session(
     session_id: int,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
 
