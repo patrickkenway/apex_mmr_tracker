@@ -37,6 +37,12 @@ def create_match(
             detail="Session not found",
         )
 
+    if session.player_id != current_player.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to start a match in this session",
+        )
+
     if session.ended_at is not None:
         raise HTTPException(
             status_code=400,
@@ -119,6 +125,7 @@ def create_match(
 def get_matches(
     session_id: int,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
 
@@ -140,6 +147,7 @@ def get_matches(
 def get_match_details(
     match_id: int,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     match = db.query(Match).filter(Match.id == match_id).first()
 
@@ -179,6 +187,7 @@ def get_match_details(
 def finish_match(
     match_id: int,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     match = db.query(Match).filter(Match.id == match_id).first()
 
@@ -186,6 +195,12 @@ def finish_match(
         raise HTTPException(
             status_code=404,
             detail="Match not found",
+        )
+
+    if match.session.player_id != current_player.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the session owner can finish this match",
         )
 
     records = db.query(MmrRecord).filter(MmrRecord.match_id == match_id).all()
