@@ -1,7 +1,5 @@
 from datetime import datetime
-from typing import Optional
-
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..database import Base
@@ -12,12 +10,17 @@ class Session(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("players.id"),
+        nullable=False,
+    )
+
     started_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
     )
 
-    ended_at: Mapped[Optional[datetime] | None] = mapped_column(
+    ended_at: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,
     )

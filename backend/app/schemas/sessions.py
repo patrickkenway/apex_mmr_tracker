@@ -9,6 +9,7 @@ class SessionCreate(BaseModel):
 
 class SessionResponse(BaseModel):
     id: int
+    player_id: int
     started_at: datetime
     ended_at: datetime | None
 

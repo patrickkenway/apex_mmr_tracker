@@ -8,7 +8,8 @@ from ..services.apex import get_player_mmr
 from ..database import get_db
 from ..models.session import Session as SessionModel
 from ..schemas.sessions import SessionCreate, SessionResponse
-
+from ..models.player import Player
+from ..core.dependencies import get_current_player
 
 router = APIRouter(
     prefix="/sessions",
@@ -20,12 +21,12 @@ router = APIRouter(
 def create_session(
     session_data: SessionCreate,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
-    # ez volt eredetileg
     session = SessionModel(
+        player_id=current_player.id,
         started_at=session_data.started_at,
     )
-    # session = SessionModel(started_at=datetime.now())
 
     db.add(session)
     db.commit()
@@ -61,6 +62,7 @@ def get_session(
 def finish_session(
     session_id: int,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
 
@@ -70,12 +72,17 @@ def finish_session(
             detail="Session not found",
         )
 
+    if session.player_id != current_player.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to finish this session",
+        )
+
     if session.ended_at is not None:
         raise HTTPException(
             status_code=400,
             detail="Session is already finished",
         )
-
     matches = db.query(Match).filter(Match.session_id == session_id).all()
 
     for match in matches:

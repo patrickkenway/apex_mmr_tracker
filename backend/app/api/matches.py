@@ -7,6 +7,7 @@ from ..models.session import Session as SessionModel
 from ..models.mmr_record import MmrRecord
 from ..models.player import Player
 from ..services.apex import get_player_mmr
+from ..core.dependencies import get_current_player
 
 from ..schemas.match import (
     MatchCreate,
@@ -26,6 +27,7 @@ def create_match(
     session_id: int,
     match_data: MatchCreate,
     db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
 ):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
 
@@ -41,19 +43,10 @@ def create_match(
             detail="Cannot add a match to a finished session",
         )
 
-    # A kezdő játékos lekérése
-    starting_player = db.query(Player).filter(Player.id == match_data.player_id).first()
-
-    if starting_player is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Starting player not found",
-        )
-
-    # Összegyűjtjük a meccs játékosait
+    # Összegyűjtjük a meccs játékosait: a bejelentkezett user + a megadott partnerek
     player_ids = [
-        match_data.player_id,
-        *match_data.other_player_ids,
+        current_player.id,
+        *match_data.partner_player_ids,
     ]
 
     # Duplikált játékosok ellenőrzése
@@ -77,9 +70,7 @@ def create_match(
         raise HTTPException(
             status_code=404,
             detail="One or more players not found",
-        )
-
-    # Következő meccsszám
+        )  # Következő meccsszám
     last_match = (
         db.query(Match)
         .filter(Match.session_id == session_id)
