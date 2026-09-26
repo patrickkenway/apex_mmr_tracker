@@ -14,3 +14,14 @@ class SessionResponse(BaseModel):
     ended_at: datetime | None
 
     model_config = {"from_attributes": True}
+
+
+class PlayerMmrChange(BaseModel):
+    player_id: int
+    player_name: str
+    total_mmr_change: int
+
+
+class SessionStatsResponse(BaseModel):
+    session_id: int
+    mmr_changes: list[PlayerMmrChange]

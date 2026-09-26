@@ -7,7 +7,7 @@ from ..models.mmr_record import MmrRecord
 from ..services.apex import get_player_mmr
 from ..database import get_db
 from ..models.session import Session as SessionModel
-from ..schemas.sessions import SessionCreate, SessionResponse
+from ..schemas.sessions import SessionCreate, SessionResponse, SessionStatsResponse
 from ..models.player import Player
 from ..core.dependencies import get_current_player
 
@@ -113,3 +113,51 @@ def finish_session(
     db.refresh(session)
 
     return session
+
+
+@router.get("/{session_id}/stats", response_model=SessionStatsResponse)
+def get_session_stats(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
+):
+    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+
+    if session is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found",
+        )
+
+    records = (
+        db.query(MmrRecord)
+        .join(Match, MmrRecord.match_id == Match.id)
+        .filter(Match.session_id == session_id)
+        .filter(MmrRecord.post_mmr.isnot(None))
+        .all()
+    )
+
+    changes_by_player: dict[int, int] = {}
+    names_by_player: dict[int, str] = {}
+
+    for record in records:
+        change = record.post_mmr - record.pre_mmr
+
+        changes_by_player[record.player_id] = (
+            changes_by_player.get(record.player_id, 0) + change
+        )
+        names_by_player[record.player_id] = record.player.name
+
+    mmr_changes = [
+        {
+            "player_id": player_id,
+            "player_name": names_by_player[player_id],
+            "total_mmr_change": total_change,
+        }
+        for player_id, total_change in changes_by_player.items()
+    ]
+
+    return {
+        "session_id": session_id,
+        "mmr_changes": mmr_changes,
+    }
