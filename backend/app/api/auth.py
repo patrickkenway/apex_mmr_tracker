@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.player import Player
-from ..schemas.player import PlayerLogin, TokenResponse
+from ..schemas.player import PlayerLogin, TokenResponse, PlayerResponse
 from ..core.security import verify_password, create_access_token
+from ..core.dependencies import get_current_player
 
 router = APIRouter(
     prefix="/auth",
@@ -34,3 +35,10 @@ def login(
     access_token = create_access_token(player.id)
 
     return TokenResponse(access_token=access_token)
+
+
+@router.get("/me", response_model=PlayerResponse)
+def read_current_player(
+    current_player: Player = Depends(get_current_player),
+):
+    return current_player
