@@ -5,6 +5,7 @@ import { getCurrentPlayer } from "./api/auth";
 import "./App.css";
 import Dashboard from "./Dashboard";
 import { logoutRequest } from "./api/auth";
+import { LeftFigure, RightFigure } from "./SideArt";
 
 function App() {
   const [view, setView] = useState("login");
@@ -53,27 +54,47 @@ function App() {
   }
 
   if (checkingAuth) {
-    return <p>Betöltés...</p>;
+    return (
+      <div className="app-shell">
+        <LeftFigure />
+        <RightFigure />
+        <p className="content-column muted">Betöltés...</p>
+      </div>
+    );
   }
 
   if (view === "dashboard" && currentPlayer) {
-    return <Dashboard currentPlayer={currentPlayer} onLogout={handleLogout} />;
+    return (
+      <div className="app-shell">
+        <LeftFigure />
+        <RightFigure />
+        <Dashboard currentPlayer={currentPlayer} onLogout={handleLogout} />
+      </div>
+    );
   }
 
   if (view === "register") {
     return (
-      <Register
-        onRegisterSuccess={() => setView("login")}
-        onSwitchToLogin={() => setView("login")}
-      />
+      <div className="app-shell">
+        <LeftFigure />
+        <RightFigure />
+        <Register
+          onRegisterSuccess={() => setView("login")}
+          onSwitchToLogin={() => setView("login")}
+        />
+      </div>
     );
   }
 
   return (
-    <Login
-      onLoginSuccess={handleLoginSuccess}
-      onSwitchToRegister={() => setView("register")}
-    />
+    <div className="app-shell">
+      <LeftFigure />
+      <RightFigure />
+      <Login
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchToRegister={() => setView("register")}
+      />
+    </div>
   );
 }
 

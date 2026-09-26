@@ -150,90 +150,121 @@ export default function Dashboard({ currentPlayer, onLogout }) {
     }
   }
   return (
-    <div>
-      <h1>Bejelentkezve mint {currentPlayer.name}</h1>
-      <p>
-        Apex fiók: {currentPlayer.apex_username} ({currentPlayer.platform})
+    <div className="content-column wide">
+      <h1 className="brand-heading">
+        APEX <span>MMR</span>
+      </h1>
+      <p className="brand-sub">
+        {currentPlayer.name} · {currentPlayer.apex_username} (
+        {currentPlayer.platform})
       </p>
-      <button onClick={onLogout}>Kijelentkezés</button>
+      <button
+        className="btn btn-secondary"
+        onClick={onLogout}
+        style={{ marginBottom: "2rem" }}
+      >
+        Kijelentkezés
+      </button>
 
-      <hr />
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
 
       {!activeMatch && (
-        <div>
+        <div className="panel">
           <h2>Új meccs indítása</h2>
-          <p>Partnerek kiválasztása (max 2):</p>
-          {players.length === 0 && <p>Nincs elérhető partner.</p>}
-          {players.map((player) => (
-            <label key={player.id} style={{ display: "block" }}>
-              <input
-                type="checkbox"
-                checked={selectedPartnerIds.includes(player.id)}
-                onChange={() => togglePartner(player.id)}
-              />
-              {player.name} ({player.username})
-            </label>
-          ))}
-          <button onClick={handleStartMatch} disabled={loading}>
+          <p className="muted">Partnerek kiválasztása (max 2)</p>
+          <div className="partner-list">
+            {players.length === 0 && (
+              <p className="muted">Nincs elérhető partner.</p>
+            )}
+            {players.map((player) => (
+              <label key={player.id}>
+                <input
+                  type="checkbox"
+                  checked={selectedPartnerIds.includes(player.id)}
+                  onChange={() => togglePartner(player.id)}
+                />
+                {player.name} ({player.username})
+              </label>
+            ))}
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={handleStartMatch}
+            disabled={loading}
+            style={{ marginTop: "1rem" }}
+          >
             {loading ? "Indítás..." : "Meccs kezdete"}
           </button>
         </div>
       )}
 
       {activeMatch && (
-        <div>
+        <div className="panel">
           <h2>Aktív meccs</h2>
-          <p>Meccs #{activeMatch.match_number}</p>
-          <p>Session ID: {activeMatch.session_id}</p>
-          <button onClick={handleFinishMatch} disabled={loading}>
+          <p className="muted">
+            Meccs #{activeMatch.match_number} · Session #
+            {activeMatch.session_id}
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={handleFinishMatch}
+            disabled={loading}
+          >
             {loading ? "Lezárás..." : "Meccs vége"}
           </button>
         </div>
       )}
 
       {lastMatchDetails && (
-        <div>
+        <div className="panel">
           <h2>Utolsó meccs eredménye</h2>
-          <ul>
-            {lastMatchDetails.players.map((p) => (
-              <li key={p.player_id}>
-                {p.player_name}: {p.pre_mmr} → {p.post_mmr} (
-                {p.mmr_change > 0 ? "+" : ""}
+          {lastMatchDetails.players.map((p) => (
+            <div className="mmr-row" key={p.player_id}>
+              <span>{p.player_name}</span>
+              <span
+                className={`mmr-change ${p.mmr_change >= 0 ? "positive" : "negative"}`}
+              >
+                {p.pre_mmr} → {p.post_mmr} ({p.mmr_change > 0 ? "+" : ""}
                 {p.mmr_change})
-              </li>
-            ))}
-          </ul>
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
       {activeSessionId && (
-        <div>
-          <hr />
-          <button onClick={handleFinishSession} disabled={loading}>
-            {loading ? "Lezárás..." : "Session lezárása"}
-          </button>
-        </div>
+        <button
+          className="btn btn-secondary"
+          onClick={handleFinishSession}
+          disabled={loading}
+          style={{ marginBottom: "2rem" }}
+        >
+          {loading ? "Lezárás..." : "Session lezárása"}
+        </button>
       )}
-      <hr />
-      <div>
+
+      <div className="panel">
         <h2>Korábbi sessionök</h2>
-        {pastSessions.length === 0 && <p>Még nincs lezárt session.</p>}
+        {pastSessions.length === 0 && (
+          <p className="muted">Még nincs lezárt session.</p>
+        )}
         {pastSessions.map((session) => (
-          <div key={session.id} style={{ marginBottom: "1em" }}>
-            <p>
-              <strong>Session #{session.id}</strong> —{" "}
+          <div className="session-entry" key={session.id}>
+            <p className="session-entry-title">
+              Session #{session.id} ·{" "}
               {new Date(session.started_at).toLocaleString("hu-HU")}
             </p>
-            <ul>
-              {(sessionStats[session.id]?.mmr_changes ?? []).map((change) => (
-                <li key={change.player_id}>
-                  {change.player_name}: {change.total_mmr_change > 0 ? "+" : ""}
+            {(sessionStats[session.id]?.mmr_changes ?? []).map((change) => (
+              <div className="mmr-row" key={change.player_id}>
+                <span>{change.player_name}</span>
+                <span
+                  className={`mmr-change ${change.total_mmr_change >= 0 ? "positive" : "negative"}`}
+                >
+                  {change.total_mmr_change > 0 ? "+" : ""}
                   {change.total_mmr_change}
-                </li>
-              ))}
-            </ul>
+                </span>
+              </div>
+            ))}
           </div>
         ))}
       </div>

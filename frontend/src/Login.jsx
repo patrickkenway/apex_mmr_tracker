@@ -24,35 +24,41 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
   }
 
   return (
-    <div>
-      <h2>Bejelentkezés</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Felhasználónév</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Jelszó</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "Belépés..." : "Belépés"}
-        </button>
-      </form>
-      <p>
+    <div className="content-column">
+      <h1 className="brand-heading">
+        APEX <span>MMR</span>
+      </h1>
+      <p className="brand-sub">Jelentkezz be, és indítsd a sessiont.</p>
+      <div className="panel">
+        <h2>Bejelentkezés</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label>Felhasználónév</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Jelszó</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="error-text">{error}</p>}
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Belépés..." : "Belépés"}
+          </button>
+        </form>
+      </div>
+      <p className="muted">
         Nincs még fiókod?{" "}
-        <button type="button" onClick={onSwitchToRegister}>
+        <button type="button" className="btn-link" onClick={onSwitchToRegister}>
           Regisztráció
         </button>
       </p>
