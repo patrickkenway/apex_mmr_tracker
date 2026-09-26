@@ -3,6 +3,7 @@ import Login from "./Login";
 import Register from "./Register";
 import { getCurrentPlayer } from "./api/auth";
 import "./App.css";
+import Dashboard from "./Dashboard";
 
 function App() {
   const [view, setView] = useState("login");
@@ -49,15 +50,7 @@ function App() {
   }
 
   if (view === "dashboard" && currentPlayer) {
-    return (
-      <div>
-        <h1>Bejelentkezve mint {currentPlayer.name}</h1>
-        <p>
-          Apex fiók: {currentPlayer.apex_username} ({currentPlayer.platform})
-        </p>
-        <button onClick={handleLogout}>Kijelentkezés</button>
-      </div>
-    );
+    return <Dashboard currentPlayer={currentPlayer} onLogout={handleLogout} />;
   }
 
   if (view === "register") {
