@@ -10,6 +10,7 @@ from ..models.session import Session as SessionModel
 from ..schemas.sessions import SessionCreate, SessionResponse, SessionStatsResponse
 from ..models.player import Player
 from ..core.dependencies import get_current_player
+from ..services.session_service import close_active_matches_and_finish_session
 
 router = APIRouter(
     prefix="/sessions",

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from ..database import get_db
 from ..models.match import Match
@@ -24,18 +26,28 @@ router = APIRouter(
 
 @router.post("/", response_model=MatchResponse)
 def create_match(
-    session_id: int,
     match_data: MatchCreate,
     db: Session = Depends(get_db),
     current_player: Player = Depends(get_current_player),
 ):
-    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+
+    session = (
+        db.query(SessionModel)
+        .filter(SessionModel.player_id == current_player.id)
+        .filter(SessionModel.ended_at.is_(None))
+        .first()
+    )
 
     if session is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found",
+        budapest_now = datetime.now(ZoneInfo("Europe/Budapest")).replace(tzinfo=None)
+
+        session = SessionModel(
+            player_id=current_player.id,
+            started_at=budapest_now,
         )
+
+        db.add(session)
+        db.flush()
 
     if session.player_id != current_player.id:
         raise HTTPException(
@@ -77,9 +89,10 @@ def create_match(
             status_code=404,
             detail="One or more players not found",
         )  # Következő meccsszám
+
     last_match = (
         db.query(Match)
-        .filter(Match.session_id == session_id)
+        .filter(Match.session_id == session.id)
         .order_by(Match.match_number.desc())
         .first()
     )
@@ -91,7 +104,7 @@ def create_match(
 
     # Meccs létrehozása
     match = Match(
-        session_id=session_id,
+        session_id=session.id,
         match_number=next_match_number,
         played_at=match_data.played_at,
     )
