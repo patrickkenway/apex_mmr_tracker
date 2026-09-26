@@ -3,17 +3,39 @@ services:
     image: postgres:18
     container_name: mmr-postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: mmr_tracker
       POSTGRES_USER: mmr_user
       POSTGRES_PASSWORD: mmr_password
-
-    ports:
-      - "5432:5432"
-
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  backend:
+    build: ./backend
+    container_name: mmr-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+    networks:
+      - internal
+
+  web:
+    build: ./frontend
+    container_name: mmr-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+networks:
+  internal:
 
 volumes:
   postgres_data:
