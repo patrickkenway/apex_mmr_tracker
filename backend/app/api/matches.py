@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
+from ..core.time_utils import budapest_now
 from ..database import get_db
 from ..models.match import Match
 from ..models.session import Session as SessionModel
@@ -39,13 +38,10 @@ def create_match(
     )
 
     if session is None:
-        budapest_now = datetime.now(ZoneInfo("Europe/Budapest")).replace(tzinfo=None)
-
         session = SessionModel(
             player_id=current_player.id,
-            started_at=budapest_now,
+            started_at=budapest_now(),
         )
-
         db.add(session)
         db.flush()
 

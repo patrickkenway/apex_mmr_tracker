@@ -1,11 +1,10 @@
-from datetime import datetime
-
 from sqlalchemy.orm import Session
 
 from ..models.session import Session as SessionModel
 from ..models.match import Match
 from ..models.mmr_record import MmrRecord
 from .apex import get_player_mmr
+from ..core.time_utils import budapest_now
 
 
 def close_active_matches_and_finish_session(
@@ -34,4 +33,4 @@ def close_active_matches_and_finish_session(
 
                 record.post_mmr = post_mmr
 
-    session.ended_at = datetime.now()
+    session.ended_at = budapest_now()
