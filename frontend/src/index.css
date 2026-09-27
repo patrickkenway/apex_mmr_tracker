@@ -24,6 +24,9 @@ body {
   font-family: "Inter", sans-serif;
   min-height: 100vh;
 }
+html {
+  background: var(--bg);
+}
 
 h1,
 h2,

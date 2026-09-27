@@ -37,6 +37,15 @@
   transform-origin: center;
 }
 
+@media (max-width: 768px) {
+  .app-shell {
+    background-attachment: scroll;
+  }
+
+  .side-figure {
+    display: none;
+  }
+}
 .content-column {
   position: relative;
   z-index: 1;
