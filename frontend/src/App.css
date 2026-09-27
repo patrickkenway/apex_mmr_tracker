@@ -2,6 +2,13 @@
   position: relative;
   min-height: 100vh;
   overflow: hidden;
+  background-image:
+    linear-gradient(rgba(10, 13, 18, 0.35), rgba(10, 13, 18, 0.55)),
+    url("./assets/hatter2.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .side-figure {
@@ -17,7 +24,7 @@
 }
 
 .side-figure-left {
-  left: 8%;
+  left: 4%;
   top: 45%;
   transform: translateY(-23%) rotate(12deg) scale(1.4);
   transform-origin: center;

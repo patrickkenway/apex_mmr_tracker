@@ -1,5 +1,5 @@
-import octane from "./assets/Octane_Banner.png";
-import pathfinder from "./assets/582-5827420_apex-legends-characters-pathfinder-hd-png-download.png";
+import octane from "./assets/octane.png";
+import pathfinder from "./assets/pathfinder.png";
 
 export function LeftFigure() {
   return (
