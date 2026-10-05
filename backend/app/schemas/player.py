@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 
 class PlayerCreate(BaseModel):
@@ -27,3 +28,8 @@ class PlayerLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class MmrHistoryPoint(BaseModel):
+    played_at: datetime
+    mmr: int

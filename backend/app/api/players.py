@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..core.security import hash_password
 from ..database import get_db
 from ..models.player import Player
-from ..schemas.player import PlayerCreate, PlayerResponse
-
+from ..models.match import Match
+from ..models.mmr_record import MmrRecord
+from ..core.dependencies import get_current_player
+from ..schemas.player import PlayerCreate, PlayerResponse, MmrHistoryPoint
 
 router = APIRouter(
     prefix="/players",
@@ -62,3 +64,23 @@ def get_player(
             detail="Player not found",
         )
     return player
+
+
+@router.get("/me/mmr-history", response_model=list[MmrHistoryPoint])
+def get_my_mmr_history(
+    db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
+):
+    records = (
+        db.query(MmrRecord)
+        .join(Match, MmrRecord.match_id == Match.id)
+        .filter(MmrRecord.player_id == current_player.id)
+        .filter(MmrRecord.post_mmr.isnot(None))
+        .order_by(Match.played_at)
+        .all()
+    )
+
+    return [
+        {"played_at": record.match.played_at, "mmr": record.post_mmr}
+        for record in records
+    ]

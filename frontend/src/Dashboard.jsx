@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { getPlayers } from "./api/players";
-import { getSessions, finishSession, getSessionStats } from "./api/sessions";
 import {
   createMatch,
   finishMatch,
   getMatchDetails,
   getMatchesForSession,
 } from "./api/matches";
+import { getSessions, finishSession } from "./api/sessions";
 
-export default function Dashboard({ currentPlayer, onLogout }) {
+export default function Dashboard({ currentPlayer, onLogout, onShowHistory }) {
   const [players, setPlayers] = useState([]);
   const [selectedPartnerIds, setSelectedPartnerIds] = useState([]);
   const [activeMatch, setActiveMatch] = useState(null);
@@ -16,32 +16,16 @@ export default function Dashboard({ currentPlayer, onLogout }) {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [pastSessions, setPastSessions] = useState([]);
-  const [sessionStats, setSessionStats] = useState({});
 
   useEffect(() => {
     loadPlayers();
     restoreActiveState();
-    loadPastSessions();
   }, []);
 
-  async function loadPastSessions() {
+  async function loadPlayers() {
     try {
-      const sessions = await getSessions();
-      const myFinishedSessions = sessions
-        .filter((s) => s.player_id === currentPlayer.id && s.ended_at !== null)
-        .sort((a, b) => new Date(b.started_at) - new Date(a.started_at));
-
-      setPastSessions(myFinishedSessions);
-
-      const statsEntries = await Promise.all(
-        myFinishedSessions.map(async (s) => {
-          const stats = await getSessionStats(s.id);
-          return [s.id, stats];
-        }),
-      );
-
-      setSessionStats(Object.fromEntries(statsEntries));
+      const allPlayers = await getPlayers();
+      setPlayers(allPlayers.filter((p) => p.id !== currentPlayer.id));
     } catch (err) {
       setError(err.message);
     }
@@ -73,15 +57,6 @@ export default function Dashboard({ currentPlayer, onLogout }) {
       if (isStillOpen) {
         setActiveMatch(lastMatch);
       }
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
-  async function loadPlayers() {
-    try {
-      const allPlayers = await getPlayers();
-      setPlayers(allPlayers.filter((p) => p.id !== currentPlayer.id));
     } catch (err) {
       setError(err.message);
     }
@@ -142,13 +117,13 @@ export default function Dashboard({ currentPlayer, onLogout }) {
       setActiveMatch(null);
       setActiveSessionId(null);
       setLastMatchDetails(null);
-      await loadPastSessions();
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <div className="content-column wide">
       <h1 className="brand-heading">
@@ -158,13 +133,15 @@ export default function Dashboard({ currentPlayer, onLogout }) {
         {currentPlayer.name} · {currentPlayer.apex_username} (
         {currentPlayer.platform})
       </p>
-      <button
-        className="btn btn-secondary"
-        onClick={onLogout}
-        style={{ marginBottom: "2rem" }}
-      >
-        Kijelentkezés
-      </button>
+
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem" }}>
+        <button className="btn btn-secondary" onClick={onLogout}>
+          Kijelentkezés
+        </button>
+        <button className="btn btn-secondary" onClick={onShowHistory}>
+          Korábbi sessionök
+        </button>
+      </div>
 
       {error && <p className="error-text">{error}</p>}
 
@@ -242,32 +219,6 @@ export default function Dashboard({ currentPlayer, onLogout }) {
           {loading ? "Lezárás..." : "Session lezárása"}
         </button>
       )}
-
-      <div className="panel">
-        <h2>Korábbi sessionök</h2>
-        {pastSessions.length === 0 && (
-          <p className="muted">Még nincs lezárt session.</p>
-        )}
-        {pastSessions.map((session) => (
-          <div className="session-entry" key={session.id}>
-            <p className="session-entry-title">
-              Session #{session.id} ·{" "}
-              {new Date(session.started_at).toLocaleString("hu-HU")}
-            </p>
-            {(sessionStats[session.id]?.mmr_changes ?? []).map((change) => (
-              <div className="mmr-row" key={change.player_id}>
-                <span>{change.player_name}</span>
-                <span
-                  className={`mmr-change ${change.total_mmr_change >= 0 ? "positive" : "negative"}`}
-                >
-                  {change.total_mmr_change > 0 ? "+" : ""}
-                  {change.total_mmr_change}
-                </span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
