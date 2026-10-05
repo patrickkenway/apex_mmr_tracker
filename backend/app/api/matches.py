@@ -102,7 +102,8 @@ def create_match(
     match = Match(
         session_id=session.id,
         match_number=next_match_number,
-        played_at=match_data.played_at,
+        # played_at=match_data.played_at,
+        played_at=budapest_now(),
     )
 
     db.add(match)
