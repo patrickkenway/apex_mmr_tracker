@@ -33,3 +33,4 @@ class TokenResponse(BaseModel):
 class MmrHistoryPoint(BaseModel):
     played_at: datetime
     mmr: int
+    session_id: int

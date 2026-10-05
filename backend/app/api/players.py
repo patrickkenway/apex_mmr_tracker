@@ -66,21 +66,26 @@ def get_player(
     return player
 
 
-@router.get("/me/mmr-history", response_model=list[MmrHistoryPoint])
-def get_my_mmr_history(
+@router.get("/{player_id}/mmr-history", response_model=list[MmrHistoryPoint])
+def get_mmr_history(
+    player_id: int,
     db: Session = Depends(get_db),
     current_player: Player = Depends(get_current_player),
 ):
     records = (
         db.query(MmrRecord)
         .join(Match, MmrRecord.match_id == Match.id)
-        .filter(MmrRecord.player_id == current_player.id)
+        .filter(MmrRecord.player_id == player_id)
         .filter(MmrRecord.post_mmr.isnot(None))
         .order_by(Match.played_at)
         .all()
     )
 
     return [
-        {"played_at": record.match.played_at, "mmr": record.post_mmr}
+        {
+            "played_at": record.match.played_at,
+            "mmr": record.post_mmr,
+            "session_id": record.match.session_id,
+        }
         for record in records
     ]

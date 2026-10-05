@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -6,21 +6,92 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
+  Brush,
   ResponsiveContainer,
 } from "recharts";
 import { getSessions, getSessionStats } from "./api/sessions";
-import { getMmrHistory } from "./api/players";
+import { getMmrHistory, getPlayers } from "./api/players";
+
+const EMBER = "#FF5A34";
+const SIGNAL = "#35B7E0";
+
+function buildBuckets(rawHistory, granularity) {
+  if (granularity === "match") {
+    return rawHistory.map((point) => ({
+      ts: new Date(point.played_at).getTime(),
+      mmr: point.mmr,
+    }));
+  }
+
+  const groupKey = (point) =>
+    granularity === "session"
+      ? point.session_id
+      : new Date(point.played_at).toDateString();
+
+  const lastByGroup = new Map();
+
+  for (const point of rawHistory) {
+    lastByGroup.set(groupKey(point), point);
+  }
+
+  return Array.from(lastByGroup.values())
+    .sort((a, b) => new Date(a.played_at) - new Date(b.played_at))
+    .map((point) => ({
+      ts: new Date(point.played_at).getTime(),
+      mmr: point.mmr,
+    }));
+}
+
+function mergeSeries(mine, other) {
+  const map = new Map();
+
+  for (const point of mine) {
+    map.set(point.ts, { ts: point.ts, mine: point.mmr });
+  }
+
+  for (const point of other) {
+    const existing = map.get(point.ts);
+    if (existing) {
+      existing.other = point.mmr;
+    } else {
+      map.set(point.ts, { ts: point.ts, other: point.mmr });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.ts - b.ts);
+}
+
+function formatTick(ts) {
+  return new Date(ts).toLocaleDateString("hu-HU", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default function History({ currentPlayer, onBack }) {
   const [pastSessions, setPastSessions] = useState([]);
   const [sessionStats, setSessionStats] = useState({});
-  const [mmrHistory, setMmrHistory] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [rawHistory, setRawHistory] = useState([]);
+  const [rawHistoryOther, setRawHistoryOther] = useState([]);
+  const [granularity, setGranularity] = useState("session");
+  const [comparePlayerId, setComparePlayerId] = useState("");
   const [error, setError] = useState(null);
 
   useEffect(() => {
     loadPastSessions();
-    loadMmrHistory();
+    loadPlayers();
+    loadMyHistory();
   }, []);
+
+  useEffect(() => {
+    if (!comparePlayerId) {
+      setRawHistoryOther([]);
+      return;
+    }
+    loadOtherHistory(comparePlayerId);
+  }, [comparePlayerId]);
 
   async function loadPastSessions() {
     try {
@@ -44,21 +115,42 @@ export default function History({ currentPlayer, onBack }) {
     }
   }
 
-  async function loadMmrHistory() {
+  async function loadPlayers() {
     try {
-      const history = await getMmrHistory();
-      const formatted = history.map((point) => ({
-        date: new Date(point.played_at).toLocaleDateString("hu-HU", {
-          month: "short",
-          day: "numeric",
-        }),
-        mmr: point.mmr,
-      }));
-      setMmrHistory(formatted);
+      const allPlayers = await getPlayers();
+      setPlayers(allPlayers.filter((p) => p.id !== currentPlayer.id));
     } catch (err) {
       setError(err.message);
     }
   }
+
+  async function loadMyHistory() {
+    try {
+      const history = await getMmrHistory(currentPlayer.id);
+      setRawHistory(history);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function loadOtherHistory(playerId) {
+    try {
+      const history = await getMmrHistory(playerId);
+      setRawHistoryOther(history);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  const chartData = useMemo(() => {
+    const mine = buildBuckets(rawHistory, granularity);
+    const other = buildBuckets(rawHistoryOther, granularity);
+    return mergeSeries(mine, other);
+  }, [rawHistory, rawHistoryOther, granularity]);
+
+  const otherPlayerName = players.find(
+    (p) => p.id === Number(comparePlayerId),
+  )?.name;
 
   return (
     <div className="content-column wide">
@@ -77,28 +169,93 @@ export default function History({ currentPlayer, onBack }) {
 
       <div className="panel">
         <h2>MMR alakulása</h2>
-        {mmrHistory.length === 0 && (
+
+        <div className="toggle-group">
+          <button
+            className={`btn-toggle ${granularity === "match" ? "active" : ""}`}
+            onClick={() => setGranularity("match")}
+          >
+            Minden meccs
+          </button>
+          <button
+            className={`btn-toggle ${granularity === "session" ? "active" : ""}`}
+            onClick={() => setGranularity("session")}
+          >
+            Session végén
+          </button>
+          <button
+            className={`btn-toggle ${granularity === "day" ? "active" : ""}`}
+            onClick={() => setGranularity("day")}
+          >
+            Naponta
+          </button>
+        </div>
+
+        <select
+          className="compare-select"
+          value={comparePlayerId}
+          onChange={(e) => setComparePlayerId(e.target.value)}
+        >
+          <option value="">Nincs összehasonlítás</option>
+          {players.map((p) => (
+            <option key={p.id} value={p.id}>
+              Összehasonlítás: {p.name}
+            </option>
+          ))}
+        </select>
+
+        {chartData.length === 0 && (
           <p className="muted">Még nincs elég adat a grafikonhoz.</p>
         )}
-        {mmrHistory.length > 0 && (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mmrHistory}>
+
+        {chartData.length > 0 && (
+          <ResponsiveContainer width="100%" height={340}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#232A35" />
-              <XAxis dataKey="date" stroke="#7C8798" fontSize={12} />
+              <XAxis
+                dataKey="ts"
+                type="number"
+                domain={["auto", "auto"]}
+                tickFormatter={formatTick}
+                stroke="#7C8798"
+                fontSize={12}
+              />
               <YAxis stroke="#7C8798" fontSize={12} domain={["auto", "auto"]} />
               <Tooltip
+                labelFormatter={formatTick}
                 contentStyle={{
                   background: "#12161D",
                   border: "1px solid #232A35",
                 }}
                 labelStyle={{ color: "#E9EDF2" }}
               />
+              <Legend />
               <Line
                 type="monotone"
-                dataKey="mmr"
-                stroke="#FF5A34"
+                dataKey="mine"
+                name={currentPlayer.name}
+                stroke={EMBER}
                 strokeWidth={2}
-                dot={{ fill: "#FF5A34", r: 4 }}
+                dot={{ fill: EMBER, r: 3 }}
+                connectNulls
+              />
+              {comparePlayerId && (
+                <Line
+                  type="monotone"
+                  dataKey="other"
+                  name={otherPlayerName}
+                  stroke={SIGNAL}
+                  strokeWidth={2}
+                  dot={{ fill: SIGNAL, r: 3 }}
+                  connectNulls
+                />
+              )}
+              <Brush
+                dataKey="ts"
+                height={24}
+                stroke={EMBER}
+                tickFormatter={formatTick}
+                travellerWidth={8}
               />
             </LineChart>
           </ResponsiveContainer>
