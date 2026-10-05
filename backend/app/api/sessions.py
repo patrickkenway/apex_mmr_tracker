@@ -134,28 +134,32 @@ def get_session_stats(
         db.query(MmrRecord)
         .join(Match, MmrRecord.match_id == Match.id)
         .filter(Match.session_id == session_id)
-        .filter(MmrRecord.post_mmr.isnot(None))
+        .order_by(Match.match_number)
         .all()
     )
 
-    changes_by_player: dict[int, int] = {}
+    first_pre_by_player: dict[int, int] = {}
+    last_post_by_player: dict[int, int] = {}
     names_by_player: dict[int, str] = {}
 
     for record in records:
-        change = record.post_mmr - record.pre_mmr
+        player_id = record.player_id
+        names_by_player[player_id] = record.player.name
 
-        changes_by_player[record.player_id] = (
-            changes_by_player.get(record.player_id, 0) + change
-        )
-        names_by_player[record.player_id] = record.player.name
+        if player_id not in first_pre_by_player:
+            first_pre_by_player[player_id] = record.pre_mmr
+
+        if record.post_mmr is not None:
+            last_post_by_player[player_id] = record.post_mmr
 
     mmr_changes = [
         {
             "player_id": player_id,
             "player_name": names_by_player[player_id],
-            "total_mmr_change": total_change,
+            "total_mmr_change": last_post_by_player[player_id] - first_pre,
         }
-        for player_id, total_change in changes_by_player.items()
+        for player_id, first_pre in first_pre_by_player.items()
+        if player_id in last_post_by_player
     ]
 
     return {
