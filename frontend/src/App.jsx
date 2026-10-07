@@ -7,6 +7,7 @@ import Dashboard from "./Dashboard";
 import { logoutRequest } from "./api/auth";
 import { LeftFigure, RightFigure } from "./SideArt";
 import History from "./History";
+import Profile from "./Profile";
 
 function App() {
   const [view, setView] = useState("login");
@@ -73,6 +74,7 @@ function App() {
           currentPlayer={currentPlayer}
           onLogout={handleLogout}
           onShowHistory={() => setView("history")}
+          onShowProfile={() => setView("profile")}
         />
       </div>
     );
@@ -86,6 +88,19 @@ function App() {
         <History
           currentPlayer={currentPlayer}
           onBack={() => setView("dashboard")}
+        />
+      </div>
+    );
+  }
+  if (view === "profile" && currentPlayer) {
+    return (
+      <div className="app-shell">
+        <LeftFigure />
+        <RightFigure />
+        <Profile
+          currentPlayer={currentPlayer}
+          onBack={() => setView("dashboard")}
+          onProfileUpdated={(updated) => setCurrentPlayer(updated)}
         />
       </div>
     );

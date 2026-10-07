@@ -34,3 +34,15 @@ class MmrHistoryPoint(BaseModel):
     played_at: datetime
     mmr: int
     session_id: int
+
+
+class PlayerUpdate(BaseModel):
+    name: str | None = None
+    username: str | None = None
+    apex_username: str | None = None
+    platform: str | None = None
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str

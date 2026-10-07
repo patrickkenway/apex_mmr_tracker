@@ -8,7 +8,12 @@ import {
 } from "./api/matches";
 import { getSessions, finishSession } from "./api/sessions";
 
-export default function Dashboard({ currentPlayer, onLogout, onShowHistory }) {
+export default function Dashboard({
+  currentPlayer,
+  onLogout,
+  onShowHistory,
+  onShowProfile,
+}) {
   const [players, setPlayers] = useState([]);
   const [selectedPartnerIds, setSelectedPartnerIds] = useState([]);
   const [activeMatch, setActiveMatch] = useState(null);
@@ -140,6 +145,9 @@ export default function Dashboard({ currentPlayer, onLogout, onShowHistory }) {
         </button>
         <button className="btn btn-secondary" onClick={onShowHistory}>
           Korábbi sessionök
+        </button>
+        <button className="btn btn-secondary" onClick={onShowProfile}>
+          Profil szerkesztése
         </button>
       </div>
 

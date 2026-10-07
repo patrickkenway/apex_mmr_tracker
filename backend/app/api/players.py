@@ -2,13 +2,20 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..core.security import hash_password
+from ..core.security import hash_password, verify_password
+from ..services.apex import get_player_mmr
 from ..database import get_db
 from ..models.player import Player
 from ..models.match import Match
 from ..models.mmr_record import MmrRecord
 from ..core.dependencies import get_current_player
-from ..schemas.player import PlayerCreate, PlayerResponse, MmrHistoryPoint
+from ..schemas.player import (
+    PlayerCreate,
+    PlayerResponse,
+    MmrHistoryPoint,
+    PlayerUpdate,
+    PasswordChangeRequest,
+)
 
 router = APIRouter(
     prefix="/players",
@@ -89,3 +96,74 @@ def get_mmr_history(
         }
         for record in records
     ]
+
+
+@router.patch("/me", response_model=PlayerResponse)
+def update_my_profile(
+    update_data: PlayerUpdate,
+    db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
+):
+    if (
+        update_data.username is not None
+        and update_data.username != current_player.username
+    ):
+        existing = (
+            db.query(Player).filter(Player.username == update_data.username).first()
+        )
+
+        if existing is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Username already taken",
+            )
+
+        current_player.username = update_data.username
+
+    if update_data.name is not None:
+        current_player.name = update_data.name
+
+    apex_changed = (
+        update_data.apex_username is not None or update_data.platform is not None
+    )
+
+    if apex_changed:
+        new_apex_username = update_data.apex_username or current_player.apex_username
+        new_platform = update_data.platform or current_player.platform
+
+        try:
+            get_player_mmr(
+                apex_username=new_apex_username,
+                platform=new_platform,
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not verify Apex account with the given username/platform",
+            )
+
+        current_player.apex_username = new_apex_username
+        current_player.platform = new_platform
+
+    db.commit()
+    db.refresh(current_player)
+
+    return current_player
+
+
+@router.post("/me/change-password")
+def change_my_password(
+    data: PasswordChangeRequest,
+    db: Session = Depends(get_db),
+    current_player: Player = Depends(get_current_player),
+):
+    if not verify_password(data.current_password, current_player.password_hash):
+        raise HTTPException(
+            status_code=401,
+            detail="Current password is incorrect",
+        )
+
+    current_player.password_hash = hash_password(data.new_password)
+    db.commit()
+
+    return {"message": "Password updated successfully"}
