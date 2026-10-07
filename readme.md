@@ -10,4 +10,4 @@ Létezik egy login kezelés része, felhasználókkal is.
 
 Az api alapjául szolgáló legérdezések így néznek ki:
 
-<https://api.mozambiquehe.re/bridge?auth=88faca215232d4a093f77c85ab60ea7d&player={USERNAME}&platform={PLATFORM}>
+curl "<https://api.mozambiquehe.re/bridge?auth=$APEX_API_KEY&player=patrickkenway&platform=PS4>" | python3 -m json.tool
