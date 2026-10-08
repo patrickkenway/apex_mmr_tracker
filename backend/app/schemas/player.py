@@ -46,3 +46,17 @@ class PlayerUpdate(BaseModel):
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class ApexProfileResponse(BaseModel):
+    level: int
+    to_next_level_percent: int
+    rank_name: str
+    rank_div: int
+    rank_score: int
+    rank_img: str
+    kd: str
+    career_kills: int
+    career_wins: int
+    games_played: int
+    selected_legend: str

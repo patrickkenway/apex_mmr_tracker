@@ -25,3 +25,6 @@ export function changePassword(currentPassword, newPassword) {
     }),
   });
 }
+export function getApexProfile() {
+  return apiFetch("/players/me/apex-profile");
+}

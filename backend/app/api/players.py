@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..core.security import hash_password, verify_password
-from ..services.apex import get_player_mmr
+from ..services.apex import get_player_mmr, get_player_profile
 from ..database import get_db
 from ..models.player import Player
 from ..models.match import Match
@@ -15,6 +15,7 @@ from ..schemas.player import (
     MmrHistoryPoint,
     PlayerUpdate,
     PasswordChangeRequest,
+    ApexProfileResponse,
 )
 
 router = APIRouter(
@@ -167,3 +168,19 @@ def change_my_password(
     db.commit()
 
     return {"message": "Password updated successfully"}
+
+
+@router.get("/me/apex-profile", response_model=ApexProfileResponse)
+def get_my_apex_profile(
+    current_player: Player = Depends(get_current_player),
+):
+    try:
+        return get_player_profile(
+            apex_username=current_player.apex_username,
+            platform=current_player.platform,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=502,
+            detail="Could not fetch Apex profile data",
+        )

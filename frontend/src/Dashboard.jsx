@@ -7,6 +7,7 @@ import {
   getMatchesForSession,
 } from "./api/matches";
 import { getSessions, finishSession } from "./api/sessions";
+import { getApexProfile } from ".api/players";
 
 export default function Dashboard({
   currentPlayer,
@@ -21,10 +22,13 @@ export default function Dashboard({
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [apexProfile, setApexProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     loadPlayers();
     restoreActiveState();
+    loadApexProfile();
   }, []);
 
   async function loadPlayers() {
@@ -64,6 +68,16 @@ export default function Dashboard({
       }
     } catch (err) {
       setError(err.message);
+    }
+  }
+  async function loadApexProfile() {
+    try {
+      const profile = await getApexProfile();
+      setApexProfile(profile);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProfileLoading(false);
     }
   }
 
@@ -151,6 +165,49 @@ export default function Dashboard({
         </button>
       </div>
 
+      <div className="panel">
+        <h2>Aktuális állapot</h2>
+        {profileLoading && <p className="muted">Betöltés...</p>}
+        {apexProfile && (
+          <>
+            <div className="rank-badge">
+              <img src={apexProfile.rank_img} alt={apexProfile.rank_name} />
+              <div>
+                <div className="rank-name">
+                  {apexProfile.rank_name} {apexProfile.rank_div}
+                </div>
+                <div className="muted">{apexProfile.rank_score} RP</div>
+              </div>
+            </div>
+            <div className="stat-grid">
+              <div className="stat-box">
+                <div className="value">{apexProfile.level}</div>
+                <div className="label">Szint</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.kd}</div>
+                <div className="label">K/D</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.career_kills}</div>
+                <div className="label">Összes ölés</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.career_wins}</div>
+                <div className="label">Győzelem</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.games_played}</div>
+                <div className="label">Meccs</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.selected_legend}</div>
+                <div className="label">Legenda</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
       {error && <p className="error-text">{error}</p>}
 
       {!activeMatch && (
