@@ -206,10 +206,6 @@ export default function Dashboard({
                 </div>
                 <div className="label">Globális helyezés</div>
               </div>
-              <div className="stat-box">
-                <div className="value">{apexProfile.selected_legend}</div>
-                <div className="label">Legenda</div>
-              </div>
             </div>
           </>
         )}
