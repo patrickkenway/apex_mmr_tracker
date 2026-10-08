@@ -183,7 +183,7 @@ export default function Dashboard({
               <div className="stat-box">
                 <div className="value">{apexProfile.level}</div>
                 <div className="label">
-                  Szint ({apexProfile.to_next_level_percent}% a következőig)
+                  Szint, ({apexProfile.to_next_level_percent}%)
                 </div>
               </div>
               <div className="stat-box">
@@ -204,11 +204,8 @@ export default function Dashboard({
                     ? `${apexProfile.al_stop_percent_global}%`
                     : "N/A"}
                 </div>
-                <div className="label">Visszaesés (globál)</div>
+                <div className="label">Globális helyezés</div>
               </div>
-              <div className="stat-box">
-                <div className="value">{apexProfile.selected_legend}</div>
-                <div className="label">Legenda</div>
               </div>
             </div>
           </>
