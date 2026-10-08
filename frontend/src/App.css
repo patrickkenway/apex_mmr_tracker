@@ -343,3 +343,67 @@
   font-size: 1.2rem;
   font-weight: 700;
 }
+.partner-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.partner-tile {
+  position: relative;
+  border: 1px solid var(--panel-border);
+  background: #0d1117;
+  padding: 0.9rem 0.75rem;
+  cursor: pointer;
+  clip-path: polygon(
+    0 8px,
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%
+  );
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.partner-tile:hover {
+  border-color: var(--signal);
+}
+
+.partner-tile.selected {
+  border-color: var(--ember);
+  background: rgba(255, 90, 52, 0.1);
+}
+
+.partner-tile .tile-name {
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.partner-tile .tile-username {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.partner-tile .tile-check {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--ember);
+}
+
+.partner-tile.selected .tile-check {
+  border-color: var(--ember);
+}

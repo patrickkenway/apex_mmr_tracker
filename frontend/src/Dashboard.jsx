@@ -220,21 +220,25 @@ export default function Dashboard({
         <div className="panel">
           <h2>Új meccs indítása</h2>
           <p className="muted">Partnerek kiválasztása (max 2)</p>
-          <div className="partner-list">
+          <div className="partner-tiles">
             {players.length === 0 && (
               <p className="muted">Nincs elérhető partner.</p>
             )}
-            {players.map((player) => (
-              <label key={player.id}>
-                <input
-                  type="checkbox"
-                  checked={selectedPartnerIds.includes(player.id)}
-                  onChange={() => togglePartner(player.id)}
-                />
-                {player.name} ({player.username})
-              </label>
-            ))}
-          </div>
+            {players.map((player) => {
+              const isSelected = selectedPartnerIds.includes(player.id);
+              return (
+                <div
+                  key={player.id}
+                  className={`partner-tile ${isSelected ? "selected" : ""}`}
+                  onClick={() => togglePartner(player.id)}
+                >
+                  {isSelected && <span className="tile-check">✓</span>}
+                  <div className="tile-name">{player.name}</div>
+                  <div className="tile-username">{player.username}</div>
+                </div>
+              );
+            })}
+          </div>{" "}
           <button
             className="btn btn-primary"
             onClick={handleStartMatch}
