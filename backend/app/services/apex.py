@@ -55,7 +55,7 @@ def get_player_profile(apex_username: str, platform: str) -> dict:
 
     data = response.json()
     rank = data["global"]["rank"]
-    total = data.get("total", {})
+    # total = data.get("total", {})
 
     return {
         "level": data["global"]["level"],
@@ -65,9 +65,9 @@ def get_player_profile(apex_username: str, platform: str) -> dict:
         "rank_score": rank["rankScore"],
         "rank_img": rank["rankImg"],
         "al_stop_percent_global": rank.get("ALStopPercentGlobal"),
-        "kd": total.get("kd", {}).get("value", "N/A"),
-        "career_kills": total.get("career_kills", {}).get("value", 0),
-        "career_wins": total.get("career_wins", {}).get("value", 0),
+        # "kd": total.get("kd", {}).get("value", "N/A"),
+        # "career_kills": total.get("career_kills", {}).get("value", 0),
+        # "career_wins": total.get("career_wins", {}).get("value", 0),
         "selected_legend": data.get("realtime", {}).get("selectedLegend", "N/A"),
     }
 
