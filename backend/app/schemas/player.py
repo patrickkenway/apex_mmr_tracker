@@ -49,6 +49,9 @@ class PasswordChangeRequest(BaseModel):
 
 
 class ApexProfileResponse(BaseModel):
+    name: str
+    tag: str | None
+    avatar: str | None
     level: int
     to_next_level_percent: int
     rank_name: str

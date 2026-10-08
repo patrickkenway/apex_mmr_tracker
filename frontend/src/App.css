@@ -318,3 +318,22 @@
   font-size: 1.3rem;
   font-weight: 700;
 }
+.apex-identity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.apex-identity img.avatar {
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--panel-border);
+  object-fit: cover;
+}
+
+.apex-identity .apex-name {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+}

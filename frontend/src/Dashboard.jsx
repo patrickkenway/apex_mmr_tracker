@@ -168,6 +168,21 @@ export default function Dashboard({
       <div className="panel">
         <h2>Aktuális állapot</h2>
         {profileLoading && <p className="muted">Betöltés...</p>}
+        <div className="apex-identity">
+          {apexProfile.avatar && (
+            <img
+              src={apexProfile.avatar}
+              alt={apexProfile.name}
+              className="avatar"
+            />
+          )}
+          <div>
+            <div className="apex-name">{apexProfile.name}</div>
+            {apexProfile.tag && (
+              <div className="muted">[{apexProfile.tag}]</div>
+            )}
+          </div>
+        </div>{" "}
         {apexProfile && (
           <>
             <div className="rank-badge">

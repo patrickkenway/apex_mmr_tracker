@@ -58,6 +58,9 @@ def get_player_profile(apex_username: str, platform: str) -> dict:
     # total = data.get("total", {})
 
     return {
+        "name": data["global"]["name"],
+        "tag": data["global"].get("tag"),
+        "avatar": data["global"].get("avatar"),
         "level": data["global"]["level"],
         "to_next_level_percent": data["global"]["toNextLevelPercent"],
         "rank_name": rank["rankName"],
