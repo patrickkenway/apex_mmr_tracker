@@ -182,8 +182,7 @@ export default function Dashboard({
               <div className="muted">[{apexProfile.tag}]</div>
             )}
           </div>
-        </div>{" "}
-        {apexProfile && (
+       {apexProfile && (
           <>
             <div className="rank-badge">
               <img src={apexProfile.rank_img} alt={apexProfile.rank_name} />

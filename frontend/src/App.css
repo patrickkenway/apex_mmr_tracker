@@ -319,9 +319,6 @@
   font-weight: 700;
 }
 .apex-identity {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   margin-bottom: 1rem;
 }
 
