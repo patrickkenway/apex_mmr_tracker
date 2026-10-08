@@ -64,10 +64,10 @@ def get_player_profile(apex_username: str, platform: str) -> dict:
         "rank_div": rank["rankDiv"],
         "rank_score": rank["rankScore"],
         "rank_img": rank["rankImg"],
+        "al_stop_percent_global": rank.get("ALStopPercentGlobal"),
         "kd": total.get("kd", {}).get("value", "N/A"),
         "career_kills": total.get("career_kills", {}).get("value", 0),
         "career_wins": total.get("career_wins", {}).get("value", 0),
-        "games_played": total.get("games_played", {}).get("value", 0),
         "selected_legend": data.get("realtime", {}).get("selectedLegend", "N/A"),
     }
 

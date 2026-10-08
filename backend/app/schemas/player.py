@@ -55,8 +55,8 @@ class ApexProfileResponse(BaseModel):
     rank_div: int
     rank_score: int
     rank_img: str
+    al_stop_percent_global: float | None
     kd: str
     career_kills: int
     career_wins: int
-    games_played: int
     selected_legend: str
