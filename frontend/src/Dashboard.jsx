@@ -187,24 +187,16 @@ export default function Dashboard({
                 </div>
               </div>
               <div className="stat-box">
-                <div className="value">{apexProfile.kd}</div>
-                <div className="label">K/D</div>
-              </div>
-              <div className="stat-box">
-                <div className="value">{apexProfile.career_kills}</div>
-                <div className="label">Összes ölés</div>
-              </div>
-              <div className="stat-box">
-                <div className="value">{apexProfile.career_wins}</div>
-                <div className="label">Győzelem</div>
-              </div>
-              <div className="stat-box">
                 <div className="value">
                   {apexProfile.al_stop_percent_global !== null
                     ? `${apexProfile.al_stop_percent_global}%`
                     : "N/A"}
                 </div>
                 <div className="label">Globális helyezés</div>
+              </div>
+              <div className="stat-box">
+                <div className="value">{apexProfile.selected_legend}</div>
+                <div className="label">Legenda</div>
               </div>
             </div>
           </>
