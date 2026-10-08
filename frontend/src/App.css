@@ -303,10 +303,9 @@
 
 .rank-name {
   font-family: "Rajdhani", sans-serif;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
 }
-
 .rank-badge .rank-name {
   font-family: "Rajdhani", sans-serif;
   font-size: 1.3rem;
@@ -314,11 +313,11 @@
 }
 .apex-identity {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
-
 .apex-identity .rank-icon {
   width: 48px;
   height: 48px;
@@ -326,6 +325,17 @@
 
 .rank-text {
   margin-bottom: 1rem;
+}
+.rank-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.rank-column .rank-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 0.3rem;
 }
 
 .apex-identity .apex-name {

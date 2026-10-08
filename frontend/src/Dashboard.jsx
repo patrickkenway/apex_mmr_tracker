@@ -178,19 +178,18 @@ export default function Dashboard({
                   <div className="muted">[{apexProfile.tag}]</div>
                 )}
               </div>
-              <img
-                src={apexProfile.rank_img}
-                alt={apexProfile.rank_name}
-                className="rank-icon"
-              />
+              <div className="rank-column">
+                <img
+                  src={apexProfile.rank_img}
+                  alt={apexProfile.rank_name}
+                  className="rank-icon"
+                />
+                <div className="rank-name">
+                  {apexProfile.rank_name} {apexProfile.rank_div}
+                </div>
+                <div className="muted">{apexProfile.rank_score} RP</div>
+              </div>
             </div>
-            <div className="rank-text">
-              <span className="rank-name">
-                {apexProfile.rank_name} {apexProfile.rank_div}
-              </span>
-              <span className="muted"> · {apexProfile.rank_score} RP</span>
-            </div>
-
             <div className="stat-grid">
               <div className="stat-box">
                 <div className="value">{apexProfile.level}</div>
