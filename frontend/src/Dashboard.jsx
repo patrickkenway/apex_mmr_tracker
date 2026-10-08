@@ -7,7 +7,7 @@ import {
   getMatchesForSession,
 } from "./api/matches";
 import { getSessions, finishSession } from "./api/sessions";
-import { getApexProfile } from ".api/players";
+import { getApexProfile } from "./api/players";
 
 export default function Dashboard({
   currentPlayer,
